@@ -2,7 +2,7 @@
 class Reader:
 
     def read(self, size: u64) -> bytes:
-        """Read given huber of bytes. Always returns size number of bytes,
+        """Read given number of bytes. Always returns size number of bytes,
         unless the connection was closed, in which case the remaining
         data is returned.
 
