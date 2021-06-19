@@ -3,6 +3,7 @@ from .reader import Reader
 class OutOfDataError(Error):
     remaining: bytes
 
+# Should be part of the bytes class.
 def _copy_into_from(dst_data: bytes,
                     dst_start: u64,
                     src_data: bytes,
@@ -11,6 +12,7 @@ def _copy_into_from(dst_data: bytes,
     for i in range(i64(size)):
         dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
 
+# Should be part of the bytes class.
 def _ends_with(data: bytes, pattern: bytes) -> bool:
     if len(data) < len(pattern):
         return False
@@ -21,6 +23,7 @@ def _ends_with(data: bytes, pattern: bytes) -> bool:
 
     return True
 
+# Should be part of the bytes class.
 def _resize(value: bytes, size: u64) -> bytes:
     new_value = bytes(size)
 
@@ -30,12 +33,23 @@ def _resize(value: bytes, size: u64) -> bytes:
     return new_value
 
 class BufferedReader:
+    """Efficient reading of any amount of bytes. Small reads are using an
+    internal buffer for fewer calls to the underlying reader, while
+    big reads are read directly into given destination buffer.
+
+    """
+
     _reader: Reader
     _buffer: bytes
     _offset: u64
     _size: u64
 
     def __init__(self, reader: Reader, size: u64 = 64):
+        """Create a buffered reader that reads from given reader. Size is the
+        size of the internal buffer.
+
+        """
+
         self._reader = reader
         self._buffer = bytes(size)
         self._offset = 0
