@@ -1,11 +1,13 @@
 About
 =====
 
-The Io package in the `Mys programming language`_.
+The io package in the `Mys programming language`_.
 
 Functions and types
 ===================
 
-.. mysfile:: src/lib.mys
+.. mysfile:: src/reader.mys
+
+.. mysfile:: src/buffered_reader.mys
 
 .. _Mys programming language: https://mys-lang.org
