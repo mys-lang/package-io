@@ -1,0 +1,187 @@
+from .reader import Reader
+
+class OutOfDataError(Error):
+    remaining: bytes
+
+def _copy_into_from(dst_data: bytes,
+                    dst_start: u64,
+                    src_data: bytes,
+                    src_start: u64,
+                    size: u64):
+    for i in range(i64(size)):
+        dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
+
+def _ends_with(data: bytes, pattern: bytes) -> bool:
+    if len(data) < len(pattern):
+        return False
+
+    for i in range(i64(len(pattern))):
+        if data[i64(len(data) - len(pattern)) + i] != pattern[i]:
+            return False
+
+    return True
+
+def _resize(value: bytes, size: u64) -> bytes:
+    new_value = bytes(size)
+
+    for i in range(i64(size)):
+        new_value[i] = value[i]
+
+    return new_value
+
+class BufferedReader:
+    _reader: Reader
+    _buffer: bytes
+    _offset: u64
+    _size: u64
+
+    def __init__(self, reader: Reader, size: u64 = 64):
+        self._reader = reader
+        self._buffer = bytes(size)
+        self._offset = 0
+        self._size = 0
+
+    def read(self, size: u64) -> bytes:
+        """Read given number of bytes. Raises an OutOfDataError if the reader
+        was closed before all data could be read.
+
+        """
+
+        value = bytes(size)
+        offset: u64 = 0
+
+        if self._size > 0:
+            if size <= self._size:
+                _copy_into_from(value, 0, self._buffer, self._offset, size)
+                self._offset += size
+                self._size -= size
+
+                return value
+            else:
+                _copy_into_from(value, 0, self._buffer, self._offset, self._size)
+                offset = self._size
+                self._offset = 0
+                self._size = 0
+
+        if size < len(self._buffer):
+            read_offset: u64 = 0
+
+            while read_offset < size:
+                read = self._reader.try_read_into(self._buffer,
+                                                  read_offset,
+                                                  len(self._buffer) - read_offset)
+
+                if read == 0:
+                    _copy_into_from(value, offset, self._buffer, 0, read_offset)
+
+                    raise OutOfDataError(_resize(value, offset + read_offset))
+
+                read_offset += read
+
+            self._offset = size - offset
+            self._size = read_offset - self._offset
+            _copy_into_from(value, offset, self._buffer, 0, self._offset)
+        else:
+            read = self._reader.read_into(value, offset, size - offset)
+            value = _resize(value, offset + read)
+
+            if read < size - offset:
+                raise OutOfDataError(value)
+
+        return value
+
+    def read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
+        """Read until given pattern is found. Raises an OutOfDataError if the
+        reader was closed before the pattern was found.
+
+        """
+
+        value = b""
+
+        try:
+            while not _ends_with(value, pattern):
+                value += self.read(1)
+
+            if not keep_pattern:
+                value = _resize(value, len(value) - len(pattern))
+        except OutOfDataError as e:
+            value += e.remaining
+            e.remaining = value
+            raise
+
+        return value
+
+class _Reader(Reader):
+    data: bytes
+    _offset: u64
+
+    def read(self, size: u64) -> bytes:
+        value = b""
+        left = len(self.data) - self._offset
+
+        if size > left:
+            size = left
+
+        for i in range(i64(size)):
+            value += self.data[i64(self._offset) + i]
+
+        self._offset += size
+
+        return value
+
+    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        left = len(self.data) - self._offset
+
+        if size > left:
+            size = left
+
+        for i in range(i64(size)):
+            data[i64(start) + i] = self.read(1)[0]
+
+        return size
+
+    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        return self.read_into(data, start, 1)
+
+@test
+def test_mixed():
+    foo = BufferedReader(
+        _Reader(
+            b"012345678901234567890123456789012345678901234567890123456789"
+            b"012345678901234567890123456789"))
+    assert foo.read(1) == b"0"
+    assert foo.read(2) == b"12"
+    assert foo.read_until(b"5") == b"345"
+    assert foo.read_until(b"6", keep_pattern=False) == b""
+    assert foo.read_until(b"8", keep_pattern=True) == b"78"
+    assert foo.read(70) == (
+        b"9012345678901234567890123456789012345678901234567890123456789012345678")
+    assert foo.read(1) == b"9"
+
+    try:
+        remaining = b""
+        foo.read(70)
+    except OutOfDataError as e:
+        remaining = e.remaining
+
+    assert remaining == b"0123456789"
+
+    try:
+        remaining = b"1"
+        foo.read(1)
+    except OutOfDataError as e:
+        remaining = e.remaining
+
+    assert remaining == b""
+
+@test
+def test_read_until_error():
+    foo = BufferedReader(_Reader(b"0123456789"))
+
+    try:
+        remaining = b""
+        foo.read_until(b"g")
+    except OutOfDataError as e:
+        remaining = e.remaining
+
+    assert remaining == b"0123456789"

@@ -1,0 +1,11 @@
+@trait
+class Reader:
+
+    def read(self, size: u64) -> bytes:
+        pass
+
+    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        pass
+
+    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        pass
