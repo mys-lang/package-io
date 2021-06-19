@@ -115,12 +115,17 @@ class _Reader(Reader):
     data: bytes
     _offset: u64
 
-    def read(self, size: u64) -> bytes:
-        value = b""
+    def _readable(self, size: u64) -> u64:
         left = len(self.data) - self._offset
 
         if size > left:
             size = left
+
+        return size
+
+    def read(self, size: u64) -> bytes:
+        value = b""
+        size = self._readable(size)
 
         for i in range(i64(size)):
             value += self.data[i64(self._offset) + i]
@@ -130,10 +135,7 @@ class _Reader(Reader):
         return value
 
     def read_into(self, data: bytes, start: u64, size: u64) -> u64:
-        left = len(self.data) - self._offset
-
-        if size > left:
-            size = left
+        size = self._readable(size)
 
         for i in range(i64(size)):
             data[i64(start) + i] = self.read(1)[0]
@@ -141,7 +143,7 @@ class _Reader(Reader):
         return size
 
     def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
-        return self.read_into(data, start, 1)
+        return self.read_into(data, start, self._readable(size))
 
 @test
 def test_mixed():
