@@ -1,7 +1,7 @@
 Io
 ==
 
-Io in the `Mys programming language`_.
+Input and output utilities in the `Mys programming language`_.
 
 Documentation: https://mys-lang.org/package/io/latest/index.html
 
