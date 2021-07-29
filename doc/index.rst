@@ -3,8 +3,8 @@ About
 
 The io package in the `Mys programming language`_.
 
-Functions and types
-===================
+API
+===
 
 .. mysfile:: src/reader.mys
 
