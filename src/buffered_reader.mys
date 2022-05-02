@@ -118,9 +118,9 @@ class BufferedReader:
 
             if not keep_pattern:
                 value = _resize(value, len(value) - len(pattern))
-        except OutOfDataError as e:
-            value += e.remaining
-            e.remaining = value
+        except OutOfDataError as error:
+            value += error.remaining
+            error.remaining = value
             raise
 
         return value
@@ -201,16 +201,16 @@ def test_mixed():
     try:
         remaining = b""
         foo.read(70)
-    except OutOfDataError as e:
-        remaining = e.remaining
+    except OutOfDataError as error:
+        remaining = error.remaining
 
     assert remaining == b"0123456789"
 
     try:
         remaining = b"1"
         foo.read(1)
-    except OutOfDataError as e:
-        remaining = e.remaining
+    except OutOfDataError as error:
+        remaining = error.remaining
 
     assert remaining == b""
 
@@ -241,7 +241,7 @@ def test_read_until_error():
     try:
         remaining = b""
         foo.read_until(b"g")
-    except OutOfDataError as e:
-        remaining = e.remaining
+    except OutOfDataError as error:
+        remaining = error.remaining
 
     assert remaining == b"0123456789"
