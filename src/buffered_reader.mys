@@ -9,7 +9,7 @@ def _copy_into_from(dst_data: bytes,
     for i in range(i64(size)):
         dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
 
-class BufferedReader:
+class BufferedReader(Reader):
     """Efficient reading of any amount of bytes. Small reads are using an
     internal buffer for fewer calls to the underlying reader, while
     big reads are read directly into given destination buffer.
@@ -82,6 +82,12 @@ class BufferedReader:
                 return value
 
         return value
+
+    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        raise NotImplementedError()
+
+    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+        raise NotImplementedError()
 
     def read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
         """Read until given pattern is found. Returns None if the pattern was
