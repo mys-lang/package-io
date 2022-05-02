@@ -1,8 +1,5 @@
 from .reader import Reader
 
-class OutOfDataError(Error):
-    remaining: bytes
-
 # Should be part of the bytes class.
 def _copy_into_from(dst_data: bytes,
                     dst_start: u64,
@@ -11,26 +8,6 @@ def _copy_into_from(dst_data: bytes,
                     size: u64):
     for i in range(i64(size)):
         dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
-
-# Should be part of the bytes class.
-def _ends_with(data: bytes, pattern: bytes) -> bool:
-    if len(data) < len(pattern):
-        return False
-
-    for i in range(i64(len(pattern))):
-        if data[i64(len(data) - len(pattern)) + i] != pattern[i]:
-            return False
-
-    return True
-
-# Should be part of the bytes class.
-def _resize(value: bytes, size: u64) -> bytes:
-    new_value = bytes(size)
-
-    for i in range(i64(size)):
-        new_value[i] = value[i]
-
-    return new_value
 
 class BufferedReader:
     """Efficient reading of any amount of bytes. Small reads are using an
@@ -56,8 +33,9 @@ class BufferedReader:
         self._size = 0
 
     def read(self, size: u64) -> bytes:
-        """Read given number of bytes. Raises an OutOfDataError if the reader
-        was closed before all data could be read.
+        """Read given number of bytes. Always returns size number of bytes,
+        unless the connection was closed, in which case the remaining
+        number of bytes is returned.
 
         """
 
@@ -87,8 +65,9 @@ class BufferedReader:
 
                 if read == 0:
                     _copy_into_from(value, offset, self._buffer, 0, read_offset)
+                    value.resize(i64(offset + read_offset))
 
-                    raise OutOfDataError(_resize(value, offset + read_offset))
+                    return value
 
                 read_offset += read
 
@@ -97,31 +76,31 @@ class BufferedReader:
             _copy_into_from(value, offset, self._buffer, 0, self._offset)
         else:
             read = self._reader.read_into(value, offset, size - offset)
-            value = _resize(value, offset + read)
+            value.resize(i64(offset + read))
 
             if read < size - offset:
-                raise OutOfDataError(value)
+                return value
 
         return value
 
     def read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
-        """Read until given pattern is found. Raises an OutOfDataError if the
-        reader was closed before the pattern was found.
+        """Read until given pattern is found. Returns None if the pattern was
+        not found before the reader was closed.
 
         """
 
         value = b""
 
-        try:
-            while not _ends_with(value, pattern):
-                value += self.read(1)
+        while not value.ends_with(pattern):
+            data = self.read(1)
 
-            if not keep_pattern:
-                value = _resize(value, len(value) - len(pattern))
-        except OutOfDataError as error:
-            value += error.remaining
-            error.remaining = value
-            raise
+            if len(data) == 0:
+                return None
+
+            value += data
+
+        if not keep_pattern:
+            value.resize(i64(len(value) - len(pattern)))
 
         return value
 
@@ -197,22 +176,8 @@ def test_mixed():
     assert foo.read(70) == (
         b"9012345678901234567890123456789012345678901234567890123456789012345678")
     assert foo.read(1) == b"9"
-
-    try:
-        remaining = b""
-        foo.read(70)
-    except OutOfDataError as error:
-        remaining = error.remaining
-
-    assert remaining == b"0123456789"
-
-    try:
-        remaining = b"1"
-        foo.read(1)
-    except OutOfDataError as error:
-        remaining = error.remaining
-
-    assert remaining == b""
+    assert foo.read(70) == b"0123456789"
+    assert foo.read(1) == b""
 
 @test
 def test_read_unsigned():
@@ -237,11 +202,4 @@ def test_read_signed():
 @test
 def test_read_until_error():
     foo = BufferedReader(_Reader(b"0123456789"))
-
-    try:
-        remaining = b""
-        foo.read_until(b"g")
-    except OutOfDataError as error:
-        remaining = error.remaining
-
-    assert remaining == b"0123456789"
+    assert foo.read_until(b"g") is None
