@@ -83,12 +83,6 @@ class BufferedReader(Reader):
 
         return value
 
-    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
-        raise NotImplementedError()
-
-    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
-        raise NotImplementedError()
-
     def read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
         """Read until given pattern is found. Returns None if the pattern was
         not found before the reader was closed.
@@ -209,3 +203,20 @@ def test_read_signed():
 def test_read_until_error():
     foo = BufferedReader(_Reader(b"0123456789"))
     assert foo.read_until(b"g") is None
+
+@test
+def test_read_into():
+    reader = BufferedReader(
+        _Reader(
+            b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
+    data = b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert reader.read_into(data, 0, 1) == 1
+    assert data == b"\x12\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert reader.read_into(data, 1, 3) == 3
+    assert data == b"\x12\x34\x56\x78\x00\x00\x00\x00\x00\x00"
+    assert reader.read_into(data, 3, 2) == 2
+    assert data == b"\x12\x34\x56\x9a\xbc\x00\x00\x00\x00\x00"
+    assert reader.try_read_into(data, 9, 1) == 1
+    assert data == b"\x12\x34\x56\x9a\xbc\x00\x00\x00\x00\xde"
+    assert reader.read_into(data, 1, 10) == 8
+    assert data == b"\x12\x01\x23\x45\x67\x89\xab\xcd\xef\xde"
