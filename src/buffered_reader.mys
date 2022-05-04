@@ -55,10 +55,12 @@ class BufferedReader(Reader):
                 self._offset = 0
                 self._size = 0
 
-        if size < len(self._buffer):
+        left = size - offset
+
+        if left < len(self._buffer):
             read_offset: u64 = 0
 
-            while read_offset < size:
+            while read_offset < left:
                 read = self._reader.try_read_into(self._buffer,
                                                   read_offset,
                                                   len(self._buffer) - read_offset)
@@ -71,15 +73,12 @@ class BufferedReader(Reader):
 
                 read_offset += read
 
-            self._offset = size - offset
+            self._offset = left
             self._size = read_offset - self._offset
             _copy_into_from(value, offset, self._buffer, 0, self._offset)
         else:
             read = self._reader.read_into(value, offset, size - offset)
             value.resize(i64(offset + read))
-
-            if read < size - offset:
-                return value
 
         return value
 
