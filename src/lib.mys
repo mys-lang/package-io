@@ -37,3 +37,11 @@ class Reader:
         """
 
         return self.read_into(data, start, 1)
+
+@trait
+class Writer:
+
+    def write(self, data: bytes):
+        """Write given data.
+
+        """

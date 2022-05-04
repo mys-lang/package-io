@@ -1,7 +1,0 @@
-@trait
-class Writer:
-
-    def write(self, data: bytes):
-        """Write given data.
-
-        """

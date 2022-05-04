@@ -10,10 +10,10 @@ The io package in the `Mys programming language`_.
 API
 ===
 
-io.reader
----------
+io
+--
 
-.. mysfile:: src/reader.mys
+.. mysfile:: src/lib.mys
 
 io.buffered_reader
 ------------------

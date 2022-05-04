@@ -1,4 +1,4 @@
-from .reader import Reader
+from . import Reader
 
 # Should be part of the bytes class.
 def _copy_into_from(dst_data: bytes,
