@@ -9,6 +9,9 @@ def _copy_into_from(dst_data: bytes,
     for i in range(i64(size)):
         dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
 
+class OutOfDataError(Error):
+    pass
+
 class BufferedReader(Reader):
     """Efficient reading of any amount of bytes. Small reads are using an
     internal buffer for fewer calls to the underlying reader, while
@@ -104,27 +107,64 @@ class BufferedReader(Reader):
         return value
 
     def read_u8(self) -> u8:
-        return self.read(1)[0]
+        """Read an u8. Raises OutOfDataError if the connection was closed.
+
+        """
+
+        data = self.read(1)
+
+        if len(data) == 0:
+            raise OutOfDataError()
+
+        return data[0]
 
     def read_u16(self) -> u16:
+        """Read an u16. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return (u16(self.read_u8()) << 8) | u16(self.read_u8())
 
     def read_u32(self) -> u32:
+        """Read an u32. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return (u32(self.read_u16()) << 16) | u32(self.read_u16())
 
     def read_u64(self) -> u64:
+        """Read an u64. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return (u64(self.read_u32()) << 32) | u64(self.read_u32())
 
     def read_i8(self) -> i8:
+        """Read an i8. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return i8(self.read_u8())
 
     def read_i16(self) -> i16:
+        """Read an i16. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return i16(self.read_u16())
 
     def read_i32(self) -> i32:
+        """Read an i32. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return i32(self.read_u32())
 
     def read_i64(self) -> i64:
+        """Read an i64. Raises OutOfDataError if the connection was closed.
+
+        """
+
         return i64(self.read_u64())
 
 class _Reader(Reader):
@@ -188,6 +228,12 @@ def test_read_unsigned():
     assert reader.read_u32() == u32(0x789abcde)
     assert reader.read_u64() == u64(0x0123456789abcdef)
 
+    try:
+        reader.read_u8()
+        assert False
+    except OutOfDataError:
+        pass
+
 @test
 def test_read_signed():
     reader = BufferedReader(
@@ -197,6 +243,12 @@ def test_read_signed():
     assert reader.read_i16() == i16(0x3456)
     assert reader.read_i32() == i32(0x789abcde)
     assert reader.read_i64() == i64(0x0123456789abcdef)
+
+    try:
+        reader.read_i8()
+        assert False
+    except OutOfDataError:
+        pass
 
 @test
 def test_read_until_error():
