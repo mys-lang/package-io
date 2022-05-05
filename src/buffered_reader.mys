@@ -1,14 +1,5 @@
 from . import Reader
 
-# Should be part of the bytes class.
-def _copy_into_from(dst_data: bytes,
-                    dst_start: u64,
-                    src_data: bytes,
-                    src_start: u64,
-                    size: u64):
-    for i in range(i64(size)):
-        dst_data[i64(dst_start) + i] = src_data[i64(src_start) + i]
-
 class OutOfDataError(Error):
     pass
 
@@ -47,13 +38,16 @@ class BufferedReader(Reader):
 
         if self._size > 0:
             if size <= self._size:
-                _copy_into_from(value, 0, self._buffer, self._offset, size)
+                value.copy_into(self._buffer, self._offset, self._offset + size, 0)
                 self._offset += size
                 self._size -= size
 
                 return value
             else:
-                _copy_into_from(value, 0, self._buffer, self._offset, self._size)
+                value.copy_into(self._buffer,
+                                self._offset,
+                                self._offset + self._size,
+                                0)
                 offset = self._size
                 self._offset = 0
                 self._size = 0
@@ -69,7 +63,7 @@ class BufferedReader(Reader):
                                                   len(self._buffer) - read_offset)
 
                 if read == 0:
-                    _copy_into_from(value, offset, self._buffer, 0, read_offset)
+                    value.copy_into(self._buffer, 0, read_offset, offset)
                     value.resize(i64(offset + read_offset))
 
                     return value
@@ -78,7 +72,7 @@ class BufferedReader(Reader):
 
             self._offset = left
             self._size = read_offset - self._offset
-            _copy_into_from(value, offset, self._buffer, 0, self._offset)
+            value.copy_into(self._buffer, 0, self._offset, offset)
         else:
             read = self._reader.read_into(value, offset, size - offset)
             value.resize(i64(offset + read))
