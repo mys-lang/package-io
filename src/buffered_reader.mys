@@ -15,7 +15,7 @@ class BufferedReader(Reader):
     _offset: u64
     _size: u64
 
-    def __init__(self, reader: Reader, size: u64 = 64):
+    func __init__(self, reader: Reader, size: u64 = 64):
         """Create a buffered reader that reads from given reader. Size is the
         size of the internal buffer.
 
@@ -26,7 +26,7 @@ class BufferedReader(Reader):
         self._offset = 0
         self._size = 0
 
-    def read(self, size: u64) -> bytes:
+    func read(self, size: u64) -> bytes:
         """Read given number of bytes. Always returns size number of bytes,
         unless the connection was closed, in which case the remaining
         number of bytes is returned.
@@ -79,7 +79,7 @@ class BufferedReader(Reader):
 
         return value
 
-    def read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
+    func read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
         """Read until given pattern is found. Returns None if the pattern was
         not found before the reader was closed.
 
@@ -100,7 +100,7 @@ class BufferedReader(Reader):
 
         return value
 
-    def read_u8(self) -> u8:
+    func read_u8(self) -> u8:
         """Read an u8. Raises OutOfDataError if the connection was closed.
 
         """
@@ -112,49 +112,49 @@ class BufferedReader(Reader):
 
         return data[0]
 
-    def read_u16(self) -> u16:
+    func read_u16(self) -> u16:
         """Read an u16. Raises OutOfDataError if the connection was closed.
 
         """
 
         return (u16(self.read_u8()) << 8) | u16(self.read_u8())
 
-    def read_u32(self) -> u32:
+    func read_u32(self) -> u32:
         """Read an u32. Raises OutOfDataError if the connection was closed.
 
         """
 
         return (u32(self.read_u16()) << 16) | u32(self.read_u16())
 
-    def read_u64(self) -> u64:
+    func read_u64(self) -> u64:
         """Read an u64. Raises OutOfDataError if the connection was closed.
 
         """
 
         return (u64(self.read_u32()) << 32) | u64(self.read_u32())
 
-    def read_i8(self) -> i8:
+    func read_i8(self) -> i8:
         """Read an i8. Raises OutOfDataError if the connection was closed.
 
         """
 
         return i8(self.read_u8())
 
-    def read_i16(self) -> i16:
+    func read_i16(self) -> i16:
         """Read an i16. Raises OutOfDataError if the connection was closed.
 
         """
 
         return i16(self.read_u16())
 
-    def read_i32(self) -> i32:
+    func read_i32(self) -> i32:
         """Read an i32. Raises OutOfDataError if the connection was closed.
 
         """
 
         return i32(self.read_u32())
 
-    def read_i64(self) -> i64:
+    func read_i64(self) -> i64:
         """Read an i64. Raises OutOfDataError if the connection was closed.
 
         """
@@ -165,7 +165,7 @@ class _Reader(Reader):
     data: bytes
     _offset: u64
 
-    def _readable(self, size: u64) -> u64:
+    func _readable(self, size: u64) -> u64:
         left = len(self.data) - self._offset
 
         if size > left:
@@ -173,7 +173,7 @@ class _Reader(Reader):
 
         return size
 
-    def read(self, size: u64) -> bytes:
+    func read(self, size: u64) -> bytes:
         value = b""
         size = self._readable(size)
 
@@ -184,7 +184,7 @@ class _Reader(Reader):
 
         return value
 
-    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func read_into(self, data: bytes, start: u64, size: u64) -> u64:
         size = self._readable(size)
 
         for i in range(i64(size)):
@@ -192,11 +192,11 @@ class _Reader(Reader):
 
         return size
 
-    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
         return self.read_into(data, start, self._readable(size))
 
 @test
-def test_mixed():
+func test_mixed():
     foo = BufferedReader(
         _Reader(
             b"012345678901234567890123456789012345678901234567890123456789"
@@ -213,7 +213,7 @@ def test_mixed():
     assert foo.read(1) == b""
 
 @test
-def test_read_unsigned():
+func test_read_unsigned():
     reader = BufferedReader(
         _Reader(
             b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
@@ -229,7 +229,7 @@ def test_read_unsigned():
         pass
 
 @test
-def test_read_signed():
+func test_read_signed():
     reader = BufferedReader(
         _Reader(
             b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
@@ -245,12 +245,12 @@ def test_read_signed():
         pass
 
 @test
-def test_read_until_error():
+func test_read_until_error():
     foo = BufferedReader(_Reader(b"0123456789"))
     assert foo.read_until(b"g") is None
 
 @test
-def test_read_into():
+func test_read_into():
     reader = BufferedReader(
         _Reader(
             b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))

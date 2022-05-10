@@ -1,14 +1,14 @@
 @trait
 class Reader:
 
-    def read(self, size: u64) -> bytes:
+    func read(self, size: u64) -> bytes:
         """Read given number of bytes. Always returns size number of bytes,
         unless the connection was closed, in which case the remaining
         data is returned.
 
         """
 
-    def read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func read_into(self, data: bytes, start: u64, size: u64) -> u64:
         """Read given number of bytes into given buffer. Always returns size
         number of bytes, unless the connection was closed, in which
         case the number of read bytes is returned.
@@ -20,7 +20,7 @@ class Reader:
 
         return len(chunk)
 
-    def try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
         """Try to read given number of bytes into given buffer. Returns number
         of read bytes, which is at least one and at most given size
         bytes, unless the connection was closed, in which case the
@@ -33,7 +33,7 @@ class Reader:
 @trait
 class Writer:
 
-    def write(self, data: bytes):
+    func write(self, data: bytes):
         """Write given data.
 
         """
