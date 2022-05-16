@@ -21,7 +21,7 @@ class BufferedWriter(Writer):
         self._buffer = bytes(size)
         self._size = 0
 
-    func write(self, data: bytes):
+    func write(self, data: bytes) -> u64:
         """Write given data. Never blocks.
 
         """
@@ -34,11 +34,21 @@ class BufferedWriter(Writer):
                 self._size += size
             else:
                 self.flush()
-                self._buffer.copy_into(data, 0, size, 0)
-                self._size = size
+
+                if self._size == 0:
+                    self._buffer.copy_into(data, 0, size, 0)
+                    self._size = size
+                else:
+                    size = 0
         else:
             self.flush()
-            self._writer.write(data)
+
+            if self._size == 0:
+                size = self._writer.write(data)
+            else:
+                size = 0
+
+        return size
 
     func flush(self):
         """Write all buffered data to the underlying writer.
@@ -46,5 +56,4 @@ class BufferedWriter(Writer):
         """
 
         if self._size > 0:
-            self._writer.write_from(self._buffer, 0, self._size)
-            self._size = 0
+            self._size -= self._writer.write_from(self._buffer, 0, self._size)

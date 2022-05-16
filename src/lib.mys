@@ -33,16 +33,19 @@ class Reader:
 @trait
 class Writer:
 
-    func write(self, data: bytes):
-        """Write given data.
+    func write(self, data: bytes) -> u64:
+        """Write given data. Returns number of bytes written, or zero if
+        the connection was closed.
 
         """
 
-    func write_from(self, data: bytes, start: u64, size: u64):
-        """Write from given buffer.
+    func write_from(self, data: bytes, start: u64, size: u64) -> u64:
+        """Write from given buffer. Returns number of bytes written, or zero
+        if the connection was closed.
 
         """
 
         value = bytes(size)
         value.copy_into(data, start, size, 0)
-        self.write(value)
+
+        return self.write(value)
