@@ -37,3 +37,12 @@ class Writer:
         """Write given data.
 
         """
+
+    func write_from(self, data: bytes, start: u64, size: u64):
+        """Write from given buffer.
+
+        """
+
+        value = bytes(size)
+        value.copy_into(data, start, size, 0)
+        self.write(value)

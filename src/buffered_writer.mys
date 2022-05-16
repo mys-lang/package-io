@@ -1,0 +1,50 @@
+from . import Writer
+
+class BufferedWriter(Writer):
+    """Efficient writing of any amount of bytes. Small writes are using an
+    internal buffer for fewer calls to the underlying writer, while
+    big writes are written directly.
+
+    """
+
+    _writer: Writer
+    _buffer: bytes
+    _size: u64
+
+    func __init__(self, writer: Writer, size: u64 = 64):
+        """Create a buffered writer that writes to given writer. Size is the
+        size of the internal buffer.
+
+        """
+
+        self._writer = writer
+        self._buffer = bytes(size)
+        self._size = 0
+
+    func write(self, data: bytes):
+        """Write given data. Never blocks.
+
+        """
+
+        size = len(data)
+
+        if size <= len(self._buffer):
+            if size <= len(self._buffer) - self._size:
+                self._buffer.copy_into(data, 0, size, self._size)
+                self._size += size
+            else:
+                self.flush()
+                self._buffer.copy_into(data, 0, size, 0)
+                self._size = size
+        else:
+            self.flush()
+            self._writer.write(data)
+
+    func flush(self):
+        """Write all buffered data to the underlying writer.
+
+        """
+
+        if self._size > 0:
+            self._writer.write_from(self._buffer, 0, self._size)
+            self._size = 0
