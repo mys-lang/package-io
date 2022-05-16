@@ -1,8 +1,5 @@
 from . import Reader
 
-class OutOfDataError(Error):
-    pass
-
 class BufferedReader(Reader):
     """Efficient reading of any amount of bytes. Small reads are using an
     internal buffer for fewer calls to the underlying reader, while
@@ -100,67 +97,6 @@ class BufferedReader(Reader):
 
         return value
 
-    func read_u8(self) -> u8:
-        """Read an u8. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        data = self.read(1)
-
-        if len(data) == 0:
-            raise OutOfDataError()
-
-        return data[0]
-
-    func read_u16(self) -> u16:
-        """Read an u16. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return (u16(self.read_u8()) << 8) | u16(self.read_u8())
-
-    func read_u32(self) -> u32:
-        """Read an u32. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return (u32(self.read_u16()) << 16) | u32(self.read_u16())
-
-    func read_u64(self) -> u64:
-        """Read an u64. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return (u64(self.read_u32()) << 32) | u64(self.read_u32())
-
-    func read_i8(self) -> i8:
-        """Read an i8. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return i8(self.read_u8())
-
-    func read_i16(self) -> i16:
-        """Read an i16. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return i16(self.read_u16())
-
-    func read_i32(self) -> i32:
-        """Read an i32. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return i32(self.read_u32())
-
-    func read_i64(self) -> i64:
-        """Read an i64. Raises OutOfDataError if the connection was closed.
-
-        """
-
-        return i64(self.read_u64())
-
 class _Reader(Reader):
     data: bytes
     _offset: u64
@@ -211,38 +147,6 @@ func test_mixed():
     assert foo.read(1) == b"9"
     assert foo.read(70) == b"0123456789"
     assert foo.read(1) == b""
-
-@test
-func test_read_unsigned():
-    reader = BufferedReader(
-        _Reader(
-            b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
-    assert reader.read_u8() == u8(0x12)
-    assert reader.read_u16() == u16(0x3456)
-    assert reader.read_u32() == u32(0x789abcde)
-    assert reader.read_u64() == u64(0x0123456789abcdef)
-
-    try:
-        reader.read_u8()
-        assert False
-    except OutOfDataError:
-        pass
-
-@test
-func test_read_signed():
-    reader = BufferedReader(
-        _Reader(
-            b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
-    assert reader.read_i8() == i8(0x12)
-    assert reader.read_i16() == i16(0x3456)
-    assert reader.read_i32() == i32(0x789abcde)
-    assert reader.read_i64() == i64(0x0123456789abcdef)
-
-    try:
-        reader.read_i8()
-        assert False
-    except OutOfDataError:
-        pass
 
 @test
 func test_read_until_error():
