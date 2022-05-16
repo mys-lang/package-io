@@ -20,6 +20,11 @@ io.buffered_reader
 
 .. mysfile:: src/buffered_reader.mys
 
+io.buffered_writer
+------------------
+
+.. mysfile:: src/buffered_writer.mys
+
 .. |discord| image:: https://img.shields.io/discord/777073391320170507?label=Discord&logo=discord&logoColor=white
 .. _discord: https://discord.gg/GFDN7JvWKS
 
