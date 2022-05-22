@@ -145,7 +145,7 @@ func test_mixed():
     assert foo.read(70) == (
         b"9012345678901234567890123456789012345678901234567890123456789012345678")
     assert foo.read(1) == b"9"
-    assert foo.read(70) == b"0123456789"
+    assert foo.read(100) == b"0123456789"
     assert foo.read(1) == b""
 
 @test
