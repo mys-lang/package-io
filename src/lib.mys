@@ -1,5 +1,4 @@
-@trait
-class Reader:
+trait Reader:
 
     func read(self, size: u64) -> bytes:
         """Read given number of bytes. Always returns size number of bytes,
@@ -30,8 +29,7 @@ class Reader:
 
         return self.read_into(data, start, 1)
 
-@trait
-class Writer:
+trait Writer:
 
     func write(self, data: bytes) -> u64:
         """Write given data. Returns number of bytes written, or zero if
