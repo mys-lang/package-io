@@ -139,8 +139,7 @@ class _Reader(Reader):
     func try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
         return self.read_into(data, start, self._readable(size))
 
-@test
-func test_mixed():
+test mixed():
     foo = BufferedReader(
         _Reader(
             b"012345678901234567890123456789012345678901234567890123456789"
@@ -156,13 +155,11 @@ func test_mixed():
     assert foo.read(100) == b"0123456789"
     assert foo.read(1) == b""
 
-@test
-func test_read_until_error():
+test read_until_error():
     foo = BufferedReader(_Reader(b"0123456789"))
     assert foo.read_until(b"g") is None
 
-@test
-func test_read_into():
+test read_into():
     reader = BufferedReader(
         _Reader(
             b"\x12\x34\x56\x78\x9a\xbc\xde\x01\x23\x45\x67\x89\xab\xcd\xef"))
@@ -178,8 +175,7 @@ func test_read_into():
     assert reader.read_into(data, 1, 10) == 8
     assert data == b"\x12\x01\x23\x45\x67\x89\xab\xcd\xef\xde"
 
-@test
-func test_clear():
+test clear():
     foo = BufferedReader(_Reader(b"0123456789"), size=4)
     assert foo.read(1) == b"0"
     assert foo.read(1) == b"1"
