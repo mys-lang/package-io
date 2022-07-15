@@ -9,9 +9,9 @@ class BufferedWriter(Writer):
 
     _writer: Writer
     _buffer: bytes
-    _size: u64
+    _size: i64
 
-    func __init__(self, writer: Writer, size: u64 = 64):
+    func __init__(self, writer: Writer, size: i64 = 64):
         """Create a buffered writer that writes to given writer. Size is the
         size of the internal buffer.
 
@@ -21,15 +21,15 @@ class BufferedWriter(Writer):
         self._buffer = bytes(size)
         self._size = 0
 
-    func write(self, data: bytes) -> u64:
+    func write(self, data: bytes) -> i64:
         """Write given data. Never blocks.
 
         """
 
-        size = len(data)
+        size = data.length()
 
-        if size <= len(self._buffer):
-            if size <= len(self._buffer) - self._size:
+        if size <= self._buffer.length():
+            if size <= self._buffer.length() - self._size:
                 self._buffer.copy_into(data, 0, size, self._size)
                 self._size += size
             else:

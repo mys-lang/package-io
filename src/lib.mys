@@ -1,13 +1,13 @@
 trait Reader:
 
-    func read(self, size: u64) -> bytes:
+    func read(self, size: i64) -> bytes:
         """Read given number of bytes. Always returns size number of bytes,
         unless the connection was closed, in which case the remaining
         data is returned.
 
         """
 
-    func read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func read_into(self, data: bytes, start: i64, size: i64) -> i64:
         """Read given number of bytes into given buffer. Always returns size
         number of bytes, unless the connection was closed, in which
         case the number of read bytes is returned.
@@ -15,11 +15,11 @@ trait Reader:
         """
 
         chunk = self.read(size)
-        data.copy_into(chunk, 0, len(chunk), start)
+        data.copy_into(chunk, 0, chunk.length(), start)
 
-        return len(chunk)
+        return chunk.length()
 
-    func try_read_into(self, data: bytes, start: u64, size: u64) -> u64:
+    func try_read_into(self, data: bytes, start: i64, size: i64) -> i64:
         """Try to read given number of bytes into given buffer. Returns number
         of read bytes, which is at least one and at most given size
         bytes, unless the connection was closed, in which case the
@@ -31,19 +31,19 @@ trait Reader:
 
 trait Writer:
 
-    func write(self, data: bytes) -> u64:
+    func write(self, data: bytes) -> i64:
         """Write given data. Returns number of bytes written, or zero if
         the connection was closed.
 
         """
 
-    func write_from(self, data: bytes, start: u64, size: u64) -> u64:
+    func write_from(self, data: bytes, start: i64, size: i64) -> i64:
         """Write from given buffer. Returns number of bytes written, or zero
         if the connection was closed.
 
         """
 
-        value = bytes(size)
+        value = bytes(u64(size))
         value.copy_into(data, start, size, 0)
 
         return self.write(value)
