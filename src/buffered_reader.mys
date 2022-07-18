@@ -85,7 +85,7 @@ class BufferedReader(Reader):
 
         return value
 
-    func read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes:
+    func read_until(self, pattern: bytes, keep_pattern: bool = True) -> bytes?:
         """Read until given pattern is found. Returns None if the pattern was
         not found before the reader was closed.
 
